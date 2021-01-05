@@ -23,9 +23,10 @@ class ViewController: NSViewController {
     // Create and open the database
     //==========================================================
     func dbConnect() {
+        let dbName:String = "MyDatabase.sqlite"
         let fileURL = try! FileManager.default
             .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-            .appendingPathComponent("MyDatabase.sqlite")
+            .appendingPathComponent(dbName)
         print(fileURL)
         // open database
         
@@ -42,7 +43,8 @@ class ViewController: NSViewController {
         // Create the table
         //==========================================================
 
-        if sqlite3_exec(db, "create table if not exists test (id integer primary key autoincrement, name text)", nil, nil, nil) != SQLITE_OK {
+        let createSQL:String = "create table if not exists test (id integer primary key autoincrement, name text)"
+        if sqlite3_exec(db, createSQL, nil, nil, nil) != SQLITE_OK {
             let errmsg = String(cString: sqlite3_errmsg(db)!)
             print("bad sqlite3_exec: error creating table: \(errmsg)")
         } else {
@@ -56,7 +58,8 @@ class ViewController: NSViewController {
         // Prepare the SQL statement
         //==========================================================
 
-        if sqlite3_prepare_v2(db, "insert into test (name) values (?)", -1, &statement, nil) != SQLITE_OK {
+        let insertSQL:String = "insert into test (name) values (?)"
+        if sqlite3_prepare_v2(db, insertSQL, -1, &statement, nil) != SQLITE_OK {
             let errmsg = String(cString: sqlite3_errmsg(db)!)
             print("bad sqlite3_prepare: error preparing insert: \(errmsg)")
         } else {
@@ -68,7 +71,8 @@ class ViewController: NSViewController {
         // Prepare the select statement
         //==========================================================
 
-        if sqlite3_prepare_v2(db, "select id, name from test", -1, &statement, nil) != SQLITE_OK {
+        let selectSQL:String = "select id, name from test"
+        if sqlite3_prepare_v2(db, selectSQL, -1, &statement, nil) != SQLITE_OK {
             let errmsg = String(cString: sqlite3_errmsg(db)!)
             print("bad sqlite3_prepare: error preparing select: \(errmsg)")
         } else {
