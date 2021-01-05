@@ -17,10 +17,14 @@ class ViewController: NSViewController {
     var statement: OpaquePointer?
     var aname:String = ""
     var mycounter:Int = 0
-    var dbName:string = "MyDatabase.sqlite"
-    var createSQL:String = "create table if not exists test (id integer primary key autoincrement, name text)"
-    var insertSQL:String = "insert into test (name) values (?)"
-    var selectSQL:String = "select id, name from test"
+    var dbName:String = "MyDatabase.sqlite"
+    var tblName:String = "test"
+    var tblDefinition:String = "(id integer primary key autoincrement, name text)"
+    var tblInserts:String = "(name)"
+    var tblSelects:String = "id, name"
+    var createSQL:String = "create table if not exists \(tblName) \(tblDefinition)"
+    var insertSQL:String = "insert into \(tblName) \(tblInserts) values (?)"
+    var selectSQL:String = "select \(tblSelects) from \(tblName)"
 
     //==========================================================
     // Create and open the database
