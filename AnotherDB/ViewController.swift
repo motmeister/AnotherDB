@@ -35,7 +35,7 @@ class ViewController: NSViewController {
     //==========================================================
     func dbConnect(dbn: String) {
         let fileURL = try! FileManager.default
-            .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+            .url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
             .appendingPathComponent(dbn)
         print(fileURL)
         // open database
@@ -95,10 +95,10 @@ class ViewController: NSViewController {
         if sqlite3_bind_text(statement, 1, aname, -1, SQLITE_TRANSIENT) != SQLITE_OK {
             let errmsg = String(cString: sqlite3_errmsg(db)!)
             print("bad sqlite3_bind_text: failure binding \(vname): \(errmsg)")
-            print(statement)
+            print(statement ?? "")
         } else {
             print("good sqlite3_bind_text:")
-            print(statement)
+            print(statement ?? "")
         }
     }
     
@@ -124,7 +124,7 @@ class ViewController: NSViewController {
             if let cString = sqlite3_column_text(statement, 1) {
                 let name = String(cString: cString)
                 // the following will need to be modified for different tables
-                rows.append("\(String(id))|\(name)")
+                rows.append("\(String(id))|\(name)")  // This will require changes when changing database schema.
             } else {
                 print("name not found")
             }
@@ -222,6 +222,8 @@ class ViewController: NSViewController {
 
     //==========================================================
     // handle showRows
+    //
+    // When changing databases and schema, this function will require changes as well.
     //==========================================================
     @IBAction func showRows(_ sender: Any) {
         if (rowcounter < 0) || (rowcounter > (rows.count-1)) {
