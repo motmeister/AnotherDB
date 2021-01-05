@@ -17,16 +17,18 @@ class ViewController: NSViewController {
     var statement: OpaquePointer?
     var aname:String = ""
     var mycounter:Int = 0
-
+    var dbName:string = "MyDatabase.sqlite"
+    var createSQL:String = "create table if not exists test (id integer primary key autoincrement, name text)"
+    var insertSQL:String = "insert into test (name) values (?)"
+    var selectSQL:String = "select id, name from test"
 
     //==========================================================
     // Create and open the database
     //==========================================================
-    func dbConnect() {
-        let dbName:String = "MyDatabase.sqlite"
+    func dbConnect(dbn: String) {
         let fileURL = try! FileManager.default
             .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-            .appendingPathComponent(dbName)
+            .appendingPathComponent(dbn)
         print(fileURL)
         // open database
         
@@ -38,13 +40,12 @@ class ViewController: NSViewController {
         }
     }
 
-    func dbTableCreate() {
+    func dbTableCreate(cSQL: String) {
         //==========================================================
         // Create the table
         //==========================================================
 
-        let createSQL:String = "create table if not exists test (id integer primary key autoincrement, name text)"
-        if sqlite3_exec(db, createSQL, nil, nil, nil) != SQLITE_OK {
+        if sqlite3_exec(db, cSQL, nil, nil, nil) != SQLITE_OK {
             let errmsg = String(cString: sqlite3_errmsg(db)!)
             print("bad sqlite3_exec: error creating table: \(errmsg)")
         } else {
@@ -53,26 +54,24 @@ class ViewController: NSViewController {
 
     }
     
-    func stmtPrepareInsert() {
+    func stmtPrepareInsert(iSQL: String) {
         //==========================================================
         // Prepare the SQL statement
         //==========================================================
 
-        let insertSQL:String = "insert into test (name) values (?)"
-        if sqlite3_prepare_v2(db, insertSQL, -1, &statement, nil) != SQLITE_OK {
+        if sqlite3_prepare_v2(db, iSQL, -1, &statement, nil) != SQLITE_OK {
             let errmsg = String(cString: sqlite3_errmsg(db)!)
             print("bad sqlite3_prepare: error preparing insert: \(errmsg)")
         } else {
             print("good sqlite3_prepare")
         }
     }
-    func stmtPrepareSelect() {
+    func stmtPrepareSelect(sSQL: String) {
         //==========================================================
         // Prepare the select statement
         //==========================================================
 
-        let selectSQL:String = "select id, name from test"
-        if sqlite3_prepare_v2(db, selectSQL, -1, &statement, nil) != SQLITE_OK {
+        if sqlite3_prepare_v2(db, sSQL, -1, &statement, nil) != SQLITE_OK {
             let errmsg = String(cString: sqlite3_errmsg(db)!)
             print("bad sqlite3_prepare: error preparing select: \(errmsg)")
         } else {
@@ -164,22 +163,22 @@ class ViewController: NSViewController {
 
         // Do any additional setup after loading the view.
 
-        dbConnect()
-        dbTableCreate()
+        dbConnect(dbn: dbName)
+        dbTableCreate(cSQL: createSQL)
     }
     
     //==========================================================
     // handle addrowButton
     //==========================================================
     @IBAction func addrowButton(_ sender: Any) {
-        dbConnect()
+        dbConnect(dbn: dbName)
         
         aname = "Dennis"
         mycounter += 1
         let counterappend:String = String(mycounter)
         aname = aname + counterappend
 
-        stmtPrepareInsert()
+        stmtPrepareInsert(iSQL: insertSQL)
         
         stmtBind(vname: aname)
         
@@ -194,10 +193,10 @@ class ViewController: NSViewController {
     // handle getrowsButton
     //==========================================================
     @IBAction func getrowsButton(_ sender: Any) {
-        dbConnect()
+        dbConnect(dbn: dbName)
         aname = "Dennis"
 
-        stmtPrepareSelect()
+        stmtPrepareSelect(sSQL: selectSQL)
         
         stmtStepSelect()
         
