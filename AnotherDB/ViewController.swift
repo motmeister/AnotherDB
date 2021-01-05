@@ -13,6 +13,8 @@ internal let SQLITE_TRANSIENT = unsafeBitCast(-1, to: sqlite3_destructor_type.se
 
 class ViewController: NSViewController {
 
+    @IBOutlet weak var rowsText: NSTextField!
+    
     var db: OpaquePointer?
     var statement: OpaquePointer?
     var aname:String = ""
@@ -22,9 +24,11 @@ class ViewController: NSViewController {
     var tblDefinition:String = "(id integer primary key autoincrement, name text)"
     var tblInserts:String = "(name)"
     var tblSelects:String = "id, name"
-    var createSQL:String = "create table if not exists \(tblName) \(tblDefinition)"
-    var insertSQL:String = "insert into \(tblName) \(tblInserts) values (?)"
-    var selectSQL:String = "select \(tblSelects) from \(tblName)"
+    var createSQL:String = ""
+    var insertSQL:String = ""
+    var selectSQL:String = ""
+    var rows:[String] = []
+    var rowcounter:Int = -1
 
     //==========================================================
     // Create and open the database
@@ -113,16 +117,22 @@ class ViewController: NSViewController {
     }
     
     func stmtStepSelect() {
+        rows = []
         while sqlite3_step(statement) == SQLITE_ROW {
             let id = sqlite3_column_int64(statement, 0)
-            print("id = \(id); ", terminator: "")
         
             if let cString = sqlite3_column_text(statement, 1) {
                 let name = String(cString: cString)
-                print("name = \(name)")
+                // the following will need to be modified for different tables
+                rows.append("\(String(id))|\(name)")
             } else {
                 print("name not found")
             }
+        }
+        rowcounter = 0
+        print("allrows")
+        for thisrow in rows {
+            print("thisrow: \(thisrow)")
         }
     }
     
@@ -166,6 +176,9 @@ class ViewController: NSViewController {
         super.viewDidLoad()
 
         // Do any additional setup after loading the view.
+        createSQL = "create table if not exists \(tblName) \(tblDefinition)"
+        insertSQL = "insert into \(tblName) \(tblInserts) values (?)"
+        selectSQL = "select \(tblSelects) from \(tblName)"
 
         dbConnect(dbn: dbName)
         dbTableCreate(cSQL: createSQL)
@@ -206,13 +219,30 @@ class ViewController: NSViewController {
         
         stmtFinalize()
     }
+
+    //==========================================================
+    // handle showRows
+    //==========================================================
+    @IBAction func showRows(_ sender: Any) {
+        if (rowcounter < 0) || (rowcounter > (rows.count-1)) {
+            rowsText.stringValue = "There are no (more) rows."
+        } else {
+            let thisrow = rows[rowcounter]
+            var rowtext = ""
+            let splits = thisrow.split(separator:"|")
+            let splitid = splits[0]
+            let splitname = splits[1]
+            rowtext.append("ID: \(splitid)\n")
+            rowtext.append("Name: \(splitname)\n")
+            rowsText.stringValue = rowtext
+            rowcounter += 1
+        }
+    }
     
     override var representedObject: Any? {
         didSet {
         // Update the view, if already loaded.
         }
     }
-
-
 }
 
